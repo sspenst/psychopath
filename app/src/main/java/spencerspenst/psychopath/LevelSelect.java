@@ -10,8 +10,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 public class LevelSelect extends AppCompatActivity {
-    public static int height;
     public static int width;
+    public static int height;
 
     private LevelSelect thisClass = this;
     private View mContentView;
@@ -25,7 +25,7 @@ public class LevelSelect extends AppCompatActivity {
         setVisibility();
 
         gridView = (GridView) findViewById(R.id.level_grid);
-        gridView.setAdapter(new TextAdapter(this));
+        gridView.setAdapter(new LevelSelectAdapter(this));
 
         // Play a level depending on the button pressed
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -39,7 +39,7 @@ public class LevelSelect extends AppCompatActivity {
         });
 
         // Wait until the entire layout has been made, then get the dimensions
-        // of the gridView. Remake the gridView based on those dimensions.
+        // of the GridView. Remake the GridView based on those dimensions.
         ViewTreeObserver viewTreeObserver = gridView.getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -48,7 +48,7 @@ public class LevelSelect extends AppCompatActivity {
                     gridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     width = gridView.getWidth();
                     height = gridView.getHeight();
-                    gridView.setAdapter(new TextAdapter(thisClass));
+                    gridView.setAdapter(new LevelSelectAdapter(thisClass));
                 }
             });
         }

@@ -11,14 +11,14 @@ import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.TextView;
 
-class TextAdapter extends BaseAdapter {
+class LevelSelectAdapter extends BaseAdapter {
     private Context mContext;
 
     private static final int columns = 6;
     private static final int rows = 12;
     private static final int buttons = rows * columns;
 
-    TextAdapter(Context c) {
+    LevelSelectAdapter(Context c) {
         mContext = c;
     }
 
@@ -35,7 +35,7 @@ class TextAdapter extends BaseAdapter {
         return 0;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
+    // create a new TextView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView textView;
         if (convertView == null) {

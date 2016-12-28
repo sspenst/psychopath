@@ -45,14 +45,65 @@
             android:textAlignment="viewEnd"/>
     </LinearLayout>
 
-    <TextView
+    <RelativeLayout
+        android:id="@+id/board"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_margin="5dp">
+
+        <GridView
+            android:id="@+id/level_grid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:numColumns="20"
+            android:gravity="center"/>
+
+        <ImageView
+            android:id="@+id/player"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ball"/>
+    </RelativeLayout>
+
+    <!-- TODO: find a more efficient way of organizing this instead of nested weights? -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:textSize="50sp"
-        android:textStyle="bold"
-        android:textColor="@color/text"
-        android:gravity="center"/>
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        tools:ignore="UselessParent">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text="L"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="^"/>
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="v"/>
+        </LinearLayout>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:text=">"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

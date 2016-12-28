@@ -7,11 +7,20 @@ import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.AdapterView;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class Play extends AppCompatActivity {
+    public static int width;
+    public static int height;
 
+    private Play thisClass = this;
     private View mContentView;
+    private GridView gridView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +31,36 @@ public class Play extends AppCompatActivity {
         mContentView = findViewById(R.id.fullscreen_content);
         setVisibility();
 
+        gridView = (GridView) findViewById(R.id.level_grid);
+        gridView.setAdapter(new BlockAdapter(this));
+
+        // Wait until the entire layout has been made, then get the dimensions of the GridView.
+        // Remake the RelativeLayout and GridView based on those dimensions.
+        ViewTreeObserver viewTreeObserver = gridView.getViewTreeObserver();
+        if (viewTreeObserver.isAlive()) {
+            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    gridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    width = gridView.getWidth();
+                    height = width;
+                    // Update the RelativeLayout first
+                    RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
+                    rl.getLayoutParams().height = height;
+                    rl.invalidate();
+                    // Update the Player size
+                    ImageView player = (ImageView) findViewById(R.id.player);
+                    player.setX((width/20)*2);
+                    player.setY((height/20)*5);
+                    player.getLayoutParams().width = width/20;
+                    player.getLayoutParams().height = height/20;
+                    // Remake the GridView
+                    gridView.setAdapter(new BlockAdapter(thisClass));
+                }
+            });
+        }
+
+        // Set level information
         Intent intent = getIntent();
         int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
 
