@@ -1,6 +1,8 @@
 package spencerspenst.psychopath;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -27,9 +29,10 @@ public class Play extends AppCompatActivity {
         setVisibility();
 
         Intent intent = getIntent();
+        int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
 
         TextView levelNum = (TextView) findViewById(R.id.level_num);
-        String levelNumText = "Level: " + intent.getStringExtra(Globals.LEVEL_NUM);
+        String levelNumText = "Level: " + levelNumber;
         levelNum.setText(levelNumText);
 
         TextView levelName = (TextView) findViewById(R.id.level_name);
@@ -43,6 +46,58 @@ public class Play extends AppCompatActivity {
         TextView levelSteps = (TextView) findViewById(R.id.level_steps);
         String levelStepsText = "0/" + intent.getStringExtra(Globals.LEVEL_STEPS);
         levelSteps.setText(levelStepsText);
+
+        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+        int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
+
+        // Give instructions if you are on level 1, 2, or 10
+        if (levelNumber == 1 && currentLevel == 1) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            builder.setTitle("DIRECTIONS:");
+            // TODO: what does the winning block look like?
+            builder.setMessage("The Objective of this game is to get to the winning " +
+                    "block in the shortest amount of steps.\n\nThe total number of steps you " +
+                    "have is listed on the bottom of the screen. If you go over " +
+                    "this number of steps you will lose and the level will restart.");
+            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Acknowledge instructions
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        } else if (levelNumber == 2 && currentLevel == 2) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            builder.setTitle("DIRECTIONS:");
+            // TODO: are the blocks always black?
+            builder.setMessage("You cannot move through black blocks, only around them.");
+            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Acknowledge instructions
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        } else if (levelNumber == 10 && currentLevel == 10) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            builder.setTitle("DIRECTIONS:");
+            // TODO: are they always pink?
+            builder.setMessage("Pink blocks can be moved in any direction. You cannot stack " +
+                    "them, nor can you push two blocks at once.");
+            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Acknowledge instructions
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
     }
 
     @Override
@@ -87,7 +142,7 @@ public class Play extends AppCompatActivity {
      */
     public static Intent createLevelIntent(Activity fromClass, int level) {
         Intent intent = new Intent(fromClass, Play.class);
-        intent.putExtra(Globals.LEVEL_NUM, Integer.toString(level));
+        intent.putExtra(Globals.LEVEL_NUM, level);
 
         // Get level information from level_data.txt based on which
         // button was pressed (based on the value of position)
