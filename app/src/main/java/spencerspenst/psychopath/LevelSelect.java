@@ -33,7 +33,7 @@ public class LevelSelect extends AppCompatActivity {
                 SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
                 int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
                 if (position < currentLevel) {
-                    startActivity(Play.createLevelIntent(thisClass, position + 1));
+                    startActivity(Globals.createPlayIntent(thisClass, position + 1));
                 }
             }
         });
@@ -79,6 +79,6 @@ public class LevelSelect extends AppCompatActivity {
     public void play(View view) {
         SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
         int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-        startActivity(Play.createLevelIntent(this, currentLevel));
+        startActivity(Globals.createPlayIntent(this, currentLevel));
     }
 }

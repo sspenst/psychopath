@@ -1,6 +1,5 @@
 package spencerspenst.psychopath;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,11 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class Play extends AppCompatActivity {
 
@@ -52,51 +46,18 @@ public class Play extends AppCompatActivity {
 
         // Give instructions if you are on level 1, 2, or 10
         if (levelNumber == 1 && currentLevel == 1) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-            builder.setTitle("DIRECTIONS:");
             // TODO: what does the winning block look like?
-            builder.setMessage("The Objective of this game is to get to the winning " +
+            directionAlert("The Objective of this game is to get to the winning " +
                     "block in the shortest amount of steps.\n\nThe total number of steps you " +
                     "have is listed on the bottom of the screen. If you go over " +
                     "this number of steps you will lose and the level will restart.");
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    // Acknowledge instructions
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
         } else if (levelNumber == 2 && currentLevel == 2) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-            builder.setTitle("DIRECTIONS:");
             // TODO: are the blocks always black?
-            builder.setMessage("You cannot move through black blocks, only around them.");
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    // Acknowledge instructions
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            directionAlert("You cannot move through black blocks, only around them.");
         } else if (levelNumber == 10 && currentLevel == 10) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-            builder.setTitle("DIRECTIONS:");
             // TODO: are they always pink?
-            builder.setMessage("Pink blocks can be moved in any direction. You cannot stack " +
+            directionAlert("Pink blocks can be moved in any direction. You cannot stack " +
                     "them, nor can you push two blocks at once.");
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    // Acknowledge instructions
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
         }
     }
 
@@ -118,6 +79,18 @@ public class Play extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
+    private void directionAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("DIRECTIONS:");
+        builder.setMessage(message);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // Acknowledge instructions
+            }
+        });
+        builder.create().show();
+    }
+
     public void levelSelect(View view) {
         startActivity(new Intent(this, LevelSelect.class));
     }
@@ -131,43 +104,5 @@ public class Play extends AppCompatActivity {
             editor.putInt(Globals.CURRENT_LEVEL, currentLevel + 1);
             editor.commit();
         }
-    }
-
-    /** TODO: should this method be in this class? maybe put in Globals?
-     * Creates an Intent with the information needed to start a level
-     *
-     * @param fromClass the Activity that called this method
-     * @param level the level number that is being loaded
-     * @return Intent with all needed information
-     */
-    public static Intent createLevelIntent(Activity fromClass, int level) {
-        Intent intent = new Intent(fromClass, Play.class);
-        intent.putExtra(Globals.LEVEL_NUM, level);
-
-        // Get level information from level_data.txt based on which
-        // button was pressed (based on the value of position)
-        try {
-            String str;
-            int count = 0;
-            InputStream ins = fromClass.getResources().openRawResource(R.raw.level_data);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
-            while((str = reader.readLine()) != null) {
-                if (count == (level - 1) * Globals.FILE_LINES_PER_LEVEL) {
-                    intent.putExtra(Globals.LEVEL_NAME, str);
-                    str = reader.readLine();
-                    intent.putExtra(Globals.LEVEL_AUTHOR, str);
-                    str = reader.readLine();
-                    intent.putExtra(Globals.LEVEL_STEPS, str);
-                    break;
-                }
-                count++;
-            }
-            reader.close();
-            ins.close();
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-
-        return intent;
     }
 }
