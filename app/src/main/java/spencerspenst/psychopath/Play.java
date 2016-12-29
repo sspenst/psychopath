@@ -191,11 +191,12 @@ public class Play extends AppCompatActivity {
             type = new String[rows][columns];
             finishPositions = new ArrayList<int[]>();
             for (int i = 0; i < rows; i++) {
-                String[] text = reader.readLine().split(" ");
+                //String[] text = reader.readLine().split(" ");
+                String line = reader.readLine();
                 for (int j = 0; j < columns; j++) {
                     // Store "0" instead of "3" or "4", and store the start and
                     // finish positions in their appropriate data structures
-                    switch(text[j]) {
+                    switch(line.substring(j,j+1)) {
                         case "3":
                             int[] finishPosition = {j, i};
                             finishPositions.add(finishPosition);
@@ -207,7 +208,7 @@ public class Play extends AppCompatActivity {
                             type[i][j] = "0";
                             break;
                         default:
-                            type[i][j] = text[j];
+                            type[i][j] = line.substring(j,j+1);
                     }
                 }
             }
@@ -262,7 +263,7 @@ public class Play extends AppCompatActivity {
                     builder.setMessage("You completed the level with " + (steps - totalSteps) + " extra steps.");
                     builder.setPositiveButton("Restart", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            // Acknowledge instructions
+                            restart(null);
                         }
                     });
                     builder.create().show();
