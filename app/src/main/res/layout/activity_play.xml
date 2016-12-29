@@ -87,7 +87,8 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text="L"/>
+            android:text="L"
+            android:onClick="left"/>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -98,20 +99,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="^"/>
+                android:text="^"
+                android:onClick="up"/>
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="v"/>
+                android:text="v"
+                android:onClick="down"/>
         </LinearLayout>
 
         <Button
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:text=">"/>
+            android:text=">"
+            android:onClick="right"/>
     </LinearLayout>
 
     <LinearLayout

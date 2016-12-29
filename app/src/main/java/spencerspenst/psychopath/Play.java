@@ -8,7 +8,6 @@ import android.content.res.Resources;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -19,23 +18,27 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Play extends AppCompatActivity {
-
-    private int startX;
-    private int startY;
-
     private Play thisClass = this;
     private View mContentView;
 
-    // gridView variables
-    private int columns;
-    private int rows;
-    private String[][] type;
+    // Board variables
     private GridView gridView;
     public static int boardSize;
-    public static int width;
-    public static int height;
+    private static int blockSize;
+    private int columns;
+    private int rows;
+
+    // Game variables
+    private int totalSteps;
+    private int steps;
+    private int posX;
+    private int posY;
+    private String[][] type;
+    private List<int[]> finishPositions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +49,7 @@ public class Play extends AppCompatActivity {
         mContentView = findViewById(R.id.fullscreen_content);
         setVisibility();
 
-        setLevelData();
+        getLevelData();
 
         // Give instructions if you are on level 1, 2, or 10
         Intent intent = getIntent();
@@ -83,26 +86,31 @@ public class Play extends AppCompatActivity {
                     gridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     gridView.setNumColumns(columns);
                     boardSize = gridView.getWidth();
+                    blockSize = columns > rows ? boardSize/columns : boardSize/rows;
                     // Dynamically adjust height of the boardSquare area to be the same as the width
                     RelativeLayout boardSquare = (RelativeLayout) findViewById(R.id.board_square);
                     boardSquare.getLayoutParams().height = boardSize;
                     // Update the width or height of the board depending on which is smaller
-                    RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
+                    RelativeLayout board = (RelativeLayout) findViewById(R.id.board);
                     if (rows > columns) {
-                        rl.getLayoutParams().width = boardSize * columns / rows;
+                        board.getLayoutParams().width = boardSize * columns / rows;
                     } else {
-                        rl.getLayoutParams().height = boardSize * rows / columns;
+                        board.getLayoutParams().height = boardSize * rows / columns;
                     }
-                    rl.invalidate();
-                    // Remake the GridView
-                    gridView.setAdapter(new BlockAdapter(thisClass, columns, rows, type));
-                    // Update the player location and size depending on which
-                    ImageView player = (ImageView) findViewById(R.id.player);
-                    int blockSize = columns > rows ? boardSize/columns : boardSize/rows;
-                    player.setX((blockSize)*startX);
-                    player.setY((blockSize)*startY);
-                    player.getLayoutParams().width = blockSize;
-                    player.getLayoutParams().height = blockSize;
+                    board.invalidate();
+
+                    draw(true);
+
+                    // Create and add all finishes to the board
+                    for (int[] finishPosition : finishPositions) {
+                        ImageView finish = new ImageView(thisClass);
+                        finish.setImageResource(R.drawable.finish);
+                        finish.setX(blockSize*finishPosition[0]);
+                        finish.setY(blockSize*finishPosition[1]);
+                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(blockSize, blockSize);
+                        RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
+                        rl.addView(finish, lp);
+                    }
                 }
             });
         }
@@ -126,7 +134,11 @@ public class Play extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
-    private void setLevelData() {
+    /**
+     * Get all information about the level from the appropriate
+     * file and format it into proper data structures.
+     */
+    private void getLevelData() {
         Intent intent = getIntent();
         int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
 
@@ -144,38 +156,45 @@ public class Play extends AppCompatActivity {
             /* File will contain lines of information in the following manner:
              * <name>, <author>, <steps>, <columns>, <rows>, <block layout>
              * Block layout will always have <height> lines of text, and <width> integers
-             * within the line of text. The integers will be one of the following types:
-             * 0 - normal ground
-             * 1 - unmovable block
-             * 2 - movable block
-             * 3 - finish
-             * 4 - start
+             * within the line of text.
              */
             BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
 
             TextView levelName = (TextView) findViewById(R.id.level_name);
             levelName.setText(reader.readLine());
 
-            TextView levelAuthor = (TextView) findViewById(R.id.level_author);
             String levelAuthorText = "by: " + reader.readLine();
+            TextView levelAuthor = (TextView) findViewById(R.id.level_author);
             levelAuthor.setText(levelAuthorText);
 
+            steps = 0;
+            totalSteps = Integer.valueOf(reader.readLine());
+            String levelStepsText = steps + "/" + totalSteps;
             TextView levelSteps = (TextView) findViewById(R.id.level_steps);
-            String levelStepsText = "0/" + reader.readLine();
             levelSteps.setText(levelStepsText);
 
             columns = Integer.valueOf(reader.readLine());
             rows = Integer.valueOf(reader.readLine());
             type = new String[rows][columns];
+            finishPositions = new ArrayList<int[]>();
             for (int i = 0; i < rows; i++) {
-                type[i] = reader.readLine().split(" ");
-            }
-            for (int i = 0; i < rows; i++) {
+                String[] text = reader.readLine().split(" ");
                 for (int j = 0; j < columns; j++) {
-                    if (type[i][j].equals("4")) {
-                        startX = j;
-                        startY = i;
-                        break;
+                    // Store "0" instead of "3" or "4", and store the start and
+                    // finish positions in their appropriate data structures
+                    switch(text[j]) {
+                        case "3":
+                            int[] finishPosition = {j, i};
+                            finishPositions.add(finishPosition);
+                            type[i][j] = "0";
+                            break;
+                        case "4":
+                            posX = j;
+                            posY = i;
+                            type[i][j] = "0";
+                            break;
+                        default:
+                            type[i][j] = text[j];
                     }
                 }
             }
@@ -184,6 +203,87 @@ public class Play extends AppCompatActivity {
         } catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Draw the grid and all of its components.
+     * @param newGrid true if the grid needs to be updated
+     */
+    private void draw(boolean newGrid) {
+        // Remake the GridView
+        gridView.setAdapter(new BlockAdapter(this, columns, rows, type));
+
+        // Update the player location and size depending on which
+        ImageView player = (ImageView) findViewById(R.id.player);
+        player.setX((blockSize)*posX);
+        player.setY((blockSize)*posY);
+        player.getLayoutParams().width = blockSize;
+        player.getLayoutParams().height = blockSize;
+    }
+
+    private void checkWin() {
+        for (int[] finishPosition : finishPositions) {
+            if (finishPosition[0] == posX && finishPosition[1] == posY) {
+                // TODO: alert
+            }
+        }
+    }
+
+    /**
+     * Move the player.
+     * @param x the change in x position
+     * @param y the change in y position
+     */
+    private void move(int x, int y) {
+        int newPosX = posX + x;
+        int newPosY = posY + y;
+        if (newPosX < 0 || newPosX == columns || newPosY < 0 || newPosY == rows) return;
+        switch(type[newPosY][newPosX]) {
+            case "0":
+                posX = newPosX;
+                posY = newPosY;
+                incrementSteps();
+                draw(false);
+                checkWin();
+                break;
+            case "1":
+                break;
+            case "2":
+                // Check if there is space for the block to move
+                if (type[newPosY + y][newPosX + x].equals("0")) {
+                    posX = newPosX;
+                    posY = newPosY;
+                    type[newPosY][newPosX] = "0";
+                    type[newPosY + y][newPosX + x] = "2";
+                    incrementSteps();
+                    draw(true);
+                    checkWin();
+                }
+                break;
+        }
+    }
+
+    private void incrementSteps() {
+        steps++;
+        String levelStepsText = steps + "/" + totalSteps;
+        TextView levelSteps = (TextView) findViewById(R.id.level_steps);
+        levelSteps.setText(levelStepsText);
+    }
+
+    public void left(View view) {
+        move(-1, 0);
+    }
+
+    public void up (View view) {
+        move(0, -1);
+    }
+
+    public void down (View view) {
+        move(0, 1);
+    }
+
+    public void right (View view) {
+        move(1, 0);
     }
 
     private void directionAlert(String message) {
