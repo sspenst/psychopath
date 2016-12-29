@@ -48,8 +48,8 @@ class BlockAdapter extends BaseAdapter {
         TextView textView;
         if (convertView == null) {
             textView = new TextView(mContext);
-            if (columns > rows) textView.setLayoutParams(new GridView.LayoutParams(Play.width/columns, Play.height/columns));
-            else textView.setLayoutParams(new GridView.LayoutParams(Play.width/rows, Play.height/rows));
+            if (columns > rows) textView.setLayoutParams(new GridView.LayoutParams(Play.boardSize/columns, Play.boardSize/columns));
+            else textView.setLayoutParams(new GridView.LayoutParams(Play.boardSize/rows, Play.boardSize/rows));
             /* 0 - normal ground
              * 1 - unmovable block
              * 2 - movable block

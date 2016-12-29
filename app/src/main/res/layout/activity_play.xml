@@ -46,22 +46,32 @@
     </LinearLayout>
 
     <RelativeLayout
-        android:id="@+id/board"
+        android:id="@+id/board_square"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
         android:layout_margin="5dp">
 
-        <GridView
-            android:id="@+id/level_grid"
+        <RelativeLayout
+            android:id="@+id/board"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"/>
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true">
 
-        <ImageView
-            android:id="@+id/player"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/ball"/>
+            <GridView
+                android:id="@+id/level_grid"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"/>
+
+            <ImageView
+                android:id="@+id/player"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ball"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" />
+        </RelativeLayout>
     </RelativeLayout>
 
     <!-- TODO: find a more efficient way of organizing this instead of nested weights? -->

@@ -33,6 +33,7 @@ public class Play extends AppCompatActivity {
     private int rows;
     private String[][] type;
     private GridView gridView;
+    public static int boardSize;
     public static int width;
     public static int height;
 
@@ -55,7 +56,7 @@ public class Play extends AppCompatActivity {
 
         if (levelNumber == 1 && currentLevel == 1) {
             // TODO: what does the winning block look like?
-            directionAlert("The Objective of this game is to get to the winning " +
+            directionAlert("The objective of this game is to get to the winning " +
                     "block in the shortest amount of steps.\n\nThe total number of steps you " +
                     "have is listed on the bottom of the screen. If you go over " +
                     "this number of steps you will lose and the level will restart.");
@@ -78,29 +79,30 @@ public class Play extends AppCompatActivity {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
+                    // Get the recently-computed board size
                     gridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     gridView.setNumColumns(columns);
-                    width = gridView.getWidth();
-                    height = width;
-                    // Update the RelativeLayout
+                    boardSize = gridView.getWidth();
+                    // Dynamically adjust height of the boardSquare area to be the same as the width
+                    RelativeLayout boardSquare = (RelativeLayout) findViewById(R.id.board_square);
+                    boardSquare.getLayoutParams().height = boardSize;
+                    // Update the width or height of the board depending on which is smaller
                     RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
-                    rl.getLayoutParams().height = height;
+                    if (rows > columns) {
+                        rl.getLayoutParams().width = boardSize * columns / rows;
+                    } else {
+                        rl.getLayoutParams().height = boardSize * rows / columns;
+                    }
                     rl.invalidate();
                     // Remake the GridView
                     gridView.setAdapter(new BlockAdapter(thisClass, columns, rows, type));
-                    // Update the Player size
+                    // Update the player location and size depending on which
                     ImageView player = (ImageView) findViewById(R.id.player);
-                    if (columns > rows) {
-                        player.setX((width/columns)*startX);
-                        player.setY((height/columns)*startY);
-                        player.getLayoutParams().width = width/columns;
-                        player.getLayoutParams().height = height/columns;
-                    } else {
-                        player.setX((width/rows)*startX);
-                        player.setY((height/rows)*startY);
-                        player.getLayoutParams().width = width/rows;
-                        player.getLayoutParams().height = height/rows;
-                    }
+                    int blockSize = columns > rows ? boardSize/columns : boardSize/rows;
+                    player.setX((blockSize)*startX);
+                    player.setY((blockSize)*startY);
+                    player.getLayoutParams().width = blockSize;
+                    player.getLayoutParams().height = blockSize;
                 }
             });
         }
