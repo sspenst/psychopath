@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -20,12 +21,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class Play extends AppCompatActivity {
-    public static int width;
-    public static int height;
+
+    private int startX;
+    private int startY;
 
     private Play thisClass = this;
     private View mContentView;
+
+    // gridView variables
+    private int columns;
+    private int rows;
+    private String[][] type;
     private GridView gridView;
+    public static int width;
+    public static int height;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,35 +44,6 @@ public class Play extends AppCompatActivity {
         setContentView(R.layout.activity_play);
         mContentView = findViewById(R.id.fullscreen_content);
         setVisibility();
-
-        gridView = (GridView) findViewById(R.id.level_grid);
-        gridView.setAdapter(new BlockAdapter(this));
-
-        // Wait until the entire layout has been made, then get the dimensions of the GridView.
-        // Remake the RelativeLayout and GridView based on those dimensions.
-        ViewTreeObserver viewTreeObserver = gridView.getViewTreeObserver();
-        if (viewTreeObserver.isAlive()) {
-            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    gridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    width = gridView.getWidth();
-                    height = width;
-                    // Update the RelativeLayout first
-                    RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
-                    rl.getLayoutParams().height = height;
-                    rl.invalidate();
-                    // Update the Player size
-                    ImageView player = (ImageView) findViewById(R.id.player);
-                    player.setX((width/20)*2);
-                    player.setY((height/20)*5);
-                    player.getLayoutParams().width = width/20;
-                    player.getLayoutParams().height = height/20;
-                    // Remake the GridView
-                    gridView.setAdapter(new BlockAdapter(thisClass));
-                }
-            });
-        }
 
         setLevelData();
 
@@ -87,6 +67,43 @@ public class Play extends AppCompatActivity {
             directionAlert("Pink blocks can be moved in any direction. You cannot stack " +
                     "them, nor can you push two blocks at once.");
         }
+
+        gridView = (GridView) findViewById(R.id.level_grid);
+        gridView.setAdapter(new BlockAdapter(this, columns, rows, type));
+
+        // Wait until the entire layout has been made, then get the dimensions of the GridView.
+        // Remake the RelativeLayout and GridView based on those dimensions.
+        ViewTreeObserver viewTreeObserver = gridView.getViewTreeObserver();
+        if (viewTreeObserver.isAlive()) {
+            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    gridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    gridView.setNumColumns(columns);
+                    width = gridView.getWidth();
+                    height = width;
+                    // Update the RelativeLayout
+                    RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
+                    rl.getLayoutParams().height = height;
+                    rl.invalidate();
+                    // Remake the GridView
+                    gridView.setAdapter(new BlockAdapter(thisClass, columns, rows, type));
+                    // Update the Player size
+                    ImageView player = (ImageView) findViewById(R.id.player);
+                    if (columns > rows) {
+                        player.setX((width/columns)*startX);
+                        player.setY((height/columns)*startY);
+                        player.getLayoutParams().width = width/columns;
+                        player.getLayoutParams().height = height/columns;
+                    } else {
+                        player.setX((width/rows)*startX);
+                        player.setY((height/rows)*startY);
+                        player.getLayoutParams().width = width/rows;
+                        player.getLayoutParams().height = height/rows;
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -108,7 +125,6 @@ public class Play extends AppCompatActivity {
     }
 
     private void setLevelData() {
-        // Set level information
         Intent intent = getIntent();
         int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
 
@@ -124,9 +140,9 @@ public class Play extends AppCompatActivity {
             InputStream ins = getResources().openRawResource(rawID);
 
             /* File will contain lines of information in the following manner:
-             * <name>, <author>, <steps>, <width>, <height>, <block layout>
-             * Block layout will always have <height> lines of text, and <width>
-             * integers within the line of text. The integers will be one of the following:
+             * <name>, <author>, <steps>, <columns>, <rows>, <block layout>
+             * Block layout will always have <height> lines of text, and <width> integers
+             * within the line of text. The integers will be one of the following types:
              * 0 - normal ground
              * 1 - unmovable block
              * 2 - movable block
@@ -146,7 +162,21 @@ public class Play extends AppCompatActivity {
             String levelStepsText = "0/" + reader.readLine();
             levelSteps.setText(levelStepsText);
 
-            // TODO: read other info
+            columns = Integer.valueOf(reader.readLine());
+            rows = Integer.valueOf(reader.readLine());
+            type = new String[rows][columns];
+            for (int i = 0; i < rows; i++) {
+                type[i] = reader.readLine().split(" ");
+            }
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < columns; j++) {
+                    if (type[i][j].equals("4")) {
+                        startX = j;
+                        startY = i;
+                        break;
+                    }
+                }
+            }
             reader.close();
             ins.close();
         } catch (IOException e){

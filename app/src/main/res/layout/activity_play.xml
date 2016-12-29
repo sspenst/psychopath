@@ -55,7 +55,6 @@
             android:id="@+id/level_grid"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:numColumns="20"
             android:gravity="center"/>
 
         <ImageView

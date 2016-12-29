@@ -16,13 +16,19 @@ class BlockAdapter extends BaseAdapter {
     private Context mContext;
 
     // TODO: change these depending on level properties?
-    private static final int columns = 20;
-    private static final int rows = 20;
-    private static final int blocks = rows * columns;
+    private final int columns;
+    private final int rows;
+    private final int blocks;
+    private final String[][] type;
 
     // TODO: take rows and columns as a parameter
-    BlockAdapter(Context c) {
+    BlockAdapter(Context c, int columns, int rows, String[][] type) {
         mContext = c;
+        this.columns = columns;
+        this.rows = rows;
+        this.blocks = columns * rows;
+        // TODO: probably should do some defensive copying here
+        this.type = type;
     }
 
     public int getCount() {
@@ -42,10 +48,29 @@ class BlockAdapter extends BaseAdapter {
         TextView textView;
         if (convertView == null) {
             textView = new TextView(mContext);
-            textView.setLayoutParams(new GridView.LayoutParams(Play.width/columns, Play.height/rows));
-            if (position % 3 == 0) textView.setBackgroundColor(Color.BLACK);
-            else if (position % 3 == 1) textView.setBackgroundColor(Color.rgb(215, 155, 155));
-            else textView.setBackgroundColor(Color.rgb(100, 119, 51));
+            if (columns > rows) textView.setLayoutParams(new GridView.LayoutParams(Play.width/columns, Play.height/columns));
+            else textView.setLayoutParams(new GridView.LayoutParams(Play.width/rows, Play.height/rows));
+            /* 0 - normal ground
+             * 1 - unmovable block
+             * 2 - movable block
+             * 3 - finish
+             * 4 - start
+             */
+            switch(Integer.valueOf(type[position / columns][position % columns])) {
+                case 0:
+                case 4:
+                    textView.setBackgroundColor(Color.rgb(100, 119, 51));
+                    break;
+                case 1:
+                    textView.setBackgroundColor(Color.BLACK);
+                    break;
+                case 2:
+                    textView.setBackgroundColor(Color.rgb(215, 155, 155));
+                    break;
+                case 3:
+                    textView.setBackgroundColor(Color.RED);
+                    break;
+            }
             // Set text color based on levels beaten
             //SharedPreferences settings = mContext.getSharedPreferences(Globals.PREFS_NAME, 0);
             //int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
