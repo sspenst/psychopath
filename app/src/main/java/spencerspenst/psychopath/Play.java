@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -26,6 +27,7 @@ public class Play extends AppCompatActivity {
     private View mContentView;
 
     // Board variables
+    private BlockAdapter blockAdapter;
     private GridView gridView;
     public static int boardSize;
     private static int blockSize;
@@ -33,6 +35,7 @@ public class Play extends AppCompatActivity {
     private int rows;
 
     // Game variables
+    private int levelNumber;
     private int totalSteps;
     private int steps;
     private int posX;
@@ -42,7 +45,7 @@ public class Play extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // TODO: figure out how to do animations without freezing the phone
+        // TODO: figure out how to do animations without freezing the phone?
         //overridePendingTransition(R.anim.slide_in, 0);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
@@ -53,7 +56,7 @@ public class Play extends AppCompatActivity {
 
         // Give instructions if you are on level 1, 2, or 10
         Intent intent = getIntent();
-        int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
+        levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
         SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
         int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
 
@@ -99,7 +102,16 @@ public class Play extends AppCompatActivity {
                     }
                     board.invalidate();
 
-                    draw(true);
+                    // Remake the GridView
+                    blockAdapter = new BlockAdapter(thisClass, columns, rows, type);
+                    gridView.setAdapter(blockAdapter);
+
+                    // Update the player location and size
+                    ImageView player = (ImageView) findViewById(R.id.player);
+                    player.setX((blockSize)*posX);
+                    player.setY((blockSize)*posY);
+                    player.getLayoutParams().width = blockSize;
+                    player.getLayoutParams().height = blockSize;
 
                     // Create and add all finishes to the board
                     for (int[] finishPosition : finishPositions) {
@@ -172,6 +184,7 @@ public class Play extends AppCompatActivity {
             String levelStepsText = steps + "/" + totalSteps;
             TextView levelSteps = (TextView) findViewById(R.id.level_steps);
             levelSteps.setText(levelStepsText);
+            levelSteps.setTextColor(Color.BLACK);
 
             columns = Integer.valueOf(reader.readLine());
             rows = Integer.valueOf(reader.readLine());
@@ -206,25 +219,54 @@ public class Play extends AppCompatActivity {
     }
 
     /**
-     * Draw the grid and all of its components.
-     * @param newGrid true if the grid needs to be updated
+     * Update the player location
      */
-    private void draw(boolean newGrid) {
-        // Remake the GridView
-        gridView.setAdapter(new BlockAdapter(this, columns, rows, type));
-
-        // Update the player location and size depending on which
+    private void drawPlayer() {
         ImageView player = (ImageView) findViewById(R.id.player);
         player.setX((blockSize)*posX);
         player.setY((blockSize)*posY);
-        player.getLayoutParams().width = blockSize;
-        player.getLayoutParams().height = blockSize;
     }
 
     private void checkWin() {
         for (int[] finishPosition : finishPositions) {
             if (finishPosition[0] == posX && finishPosition[1] == posY) {
-                // TODO: alert
+                if (steps == totalSteps) {
+                    // Increment level beaten count
+                    SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+                    final int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
+                    if (levelNumber == currentLevel && currentLevel < Globals.TOTAL_LEVELS) {
+                        SharedPreferences.Editor editor = settings.edit();
+                        editor.putInt(Globals.CURRENT_LEVEL, currentLevel + 1);
+                        editor.commit();
+                    }
+
+                    TextView levelName = (TextView) findViewById(R.id.level_name);
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setMessage("Congratulations, you beat " + levelName.getText() + "!");
+                    builder.setPositiveButton("Next Level", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Intent intent = new Intent(thisClass, Play.class);
+                            intent.putExtra(Globals.LEVEL_NUM, levelNumber + 1);
+                            startActivity(intent);
+                        }
+                    });
+                    builder.setNegativeButton("Level Select", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            startActivity(new Intent(thisClass, LevelSelect.class));
+                        }
+                    });
+                    builder.create().show();
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setMessage("You completed the level with " + (steps - totalSteps) + " extra steps.");
+                    builder.setPositiveButton("Restart", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // Acknowledge instructions
+                        }
+                    });
+                    builder.create().show();
+                }
             }
         }
     }
@@ -238,28 +280,40 @@ public class Play extends AppCompatActivity {
         int newPosX = posX + x;
         int newPosY = posY + y;
         if (newPosX < 0 || newPosX == columns || newPosY < 0 || newPosY == rows) return;
+        boolean moveMade = false;
         switch(type[newPosY][newPosX]) {
             case "0":
+                moveMade = true;
                 posX = newPosX;
                 posY = newPosY;
-                incrementSteps();
-                draw(false);
-                checkWin();
                 break;
             case "1":
                 break;
             case "2":
                 // Check if there is space for the block to move
-                if (type[newPosY + y][newPosX + x].equals("0")) {
+                int pushPosY = newPosY + y;
+                int pushPosX = newPosX + x;
+                if (type[pushPosY][pushPosX].equals("0")) {
+                    moveMade = true;
                     posX = newPosX;
                     posY = newPosY;
                     type[newPosY][newPosX] = "0";
-                    type[newPosY + y][newPosX + x] = "2";
-                    incrementSteps();
-                    draw(true);
-                    checkWin();
+                    type[pushPosY][pushPosX] = "2";
+                    // Update the two blocks that changed
+                    GridView levelGrid = (GridView) findViewById(R.id.level_grid);
+                    TextView normalBlock = (TextView) levelGrid.getChildAt(newPosY * columns + newPosX);
+                    // TODO: global colors
+                    normalBlock.setBackgroundColor(Color.rgb(100, 119, 51));
+                    TextView movableBlock = (TextView) levelGrid.getChildAt(pushPosY * columns + pushPosX);
+                    movableBlock.setBackgroundColor(Color.rgb(215, 155, 155));
                 }
                 break;
+        }
+
+        if (moveMade) {
+            incrementSteps();
+            drawPlayer();
+            checkWin();
         }
     }
 
@@ -268,6 +322,8 @@ public class Play extends AppCompatActivity {
         String levelStepsText = steps + "/" + totalSteps;
         TextView levelSteps = (TextView) findViewById(R.id.level_steps);
         levelSteps.setText(levelStepsText);
+        // TODO: change back to black at some point (ADD UNDO BUTTON)
+        if (steps > totalSteps) levelSteps.setTextColor(Color.RED);
     }
 
     public void left(View view) {
@@ -303,13 +359,9 @@ public class Play extends AppCompatActivity {
     }
 
     public void restart(View view) {
-        // TODO: move this code somewhere else
-        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
-        int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-        if (currentLevel < Globals.TOTAL_LEVELS) {
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putInt(Globals.CURRENT_LEVEL, currentLevel + 1);
-            editor.commit();
-        }
+        getLevelData();
+        blockAdapter = new BlockAdapter(this, columns, rows, type);
+        gridView.setAdapter(blockAdapter);
+        drawPlayer();
     }
 }

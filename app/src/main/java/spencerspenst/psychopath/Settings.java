@@ -65,4 +65,11 @@ public class Settings extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+    public void unlock(View view) {
+        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(Globals.CURRENT_LEVEL, Globals.TOTAL_LEVELS);
+        editor.commit();
+    }
 }

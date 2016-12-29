@@ -15,13 +15,11 @@ import android.widget.TextView;
 class BlockAdapter extends BaseAdapter {
     private Context mContext;
 
-    // TODO: change these depending on level properties?
     private final int columns;
     private final int rows;
     private final int blocks;
     private final String[][] type;
 
-    // TODO: take rows and columns as a parameter
     BlockAdapter(Context c, int columns, int rows, String[][] type) {
         mContext = c;
         this.columns = columns;
@@ -71,11 +69,6 @@ class BlockAdapter extends BaseAdapter {
                     textView.setBackgroundColor(Color.RED);
                     break;
             }
-            // Set text color based on levels beaten
-            //SharedPreferences settings = mContext.getSharedPreferences(Globals.PREFS_NAME, 0);
-            //int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-            //if (position < currentLevel) textView.setTextColor(Color.BLACK);
-            //else textView.setTextColor(Color.argb(30, 0, 0, 0));
         } else {
             textView = (TextView) convertView;
         }
