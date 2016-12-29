@@ -4,15 +4,20 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class Play extends AppCompatActivity {
     public static int width;
@@ -60,30 +65,14 @@ public class Play extends AppCompatActivity {
             });
         }
 
-        // Set level information
+        setLevelData();
+
+        // Give instructions if you are on level 1, 2, or 10
         Intent intent = getIntent();
         int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
-
-        TextView levelNum = (TextView) findViewById(R.id.level_num);
-        String levelNumText = "Level: " + levelNumber;
-        levelNum.setText(levelNumText);
-
-        TextView levelName = (TextView) findViewById(R.id.level_name);
-        String levelNameText = intent.getStringExtra(Globals.LEVEL_NAME);
-        levelName.setText(levelNameText);
-
-        TextView levelAuthor = (TextView) findViewById(R.id.level_author);
-        String levelAuthorText = "by: " + intent.getStringExtra(Globals.LEVEL_AUTHOR);
-        levelAuthor.setText(levelAuthorText);
-
-        TextView levelSteps = (TextView) findViewById(R.id.level_steps);
-        String levelStepsText = "0/" + intent.getStringExtra(Globals.LEVEL_STEPS);
-        levelSteps.setText(levelStepsText);
-
         SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
         int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
 
-        // Give instructions if you are on level 1, 2, or 10
         if (levelNumber == 1 && currentLevel == 1) {
             // TODO: what does the winning block look like?
             directionAlert("The Objective of this game is to get to the winning " +
@@ -116,6 +105,53 @@ public class Play extends AppCompatActivity {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    private void setLevelData() {
+        // Set level information
+        Intent intent = getIntent();
+        int levelNumber = intent.getIntExtra(Globals.LEVEL_NUM, 1);
+
+        TextView levelNum = (TextView) findViewById(R.id.level_num);
+        String levelNumText = "Level: " + levelNumber;
+        levelNum.setText(levelNumText);
+
+        // Get level information from level<levelNumber>.txt
+        try {
+            // Get the ID of the raw resource based on the level number
+            Resources res = getResources();
+            int rawID = res.getIdentifier("level" + Integer.toString(levelNumber), "raw", getPackageName());
+            InputStream ins = getResources().openRawResource(rawID);
+
+            /* File will contain lines of information in the following manner:
+             * <name>, <author>, <steps>, <width>, <height>, <block layout>
+             * Block layout will always have <height> lines of text, and <width>
+             * integers within the line of text. The integers will be one of the following:
+             * 0 - normal ground
+             * 1 - unmovable block
+             * 2 - movable block
+             * 3 - finish
+             * 4 - start
+             */
+            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+
+            TextView levelName = (TextView) findViewById(R.id.level_name);
+            levelName.setText(reader.readLine());
+
+            TextView levelAuthor = (TextView) findViewById(R.id.level_author);
+            String levelAuthorText = "by: " + reader.readLine();
+            levelAuthor.setText(levelAuthorText);
+
+            TextView levelSteps = (TextView) findViewById(R.id.level_steps);
+            String levelStepsText = "0/" + reader.readLine();
+            levelSteps.setText(levelStepsText);
+
+            // TODO: read other info
+            reader.close();
+            ins.close();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     private void directionAlert(String message) {

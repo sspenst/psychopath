@@ -20,6 +20,7 @@ class BlockAdapter extends BaseAdapter {
     private static final int rows = 20;
     private static final int blocks = rows * columns;
 
+    // TODO: take rows and columns as a parameter
     BlockAdapter(Context c) {
         mContext = c;
     }

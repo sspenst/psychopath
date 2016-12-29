@@ -38,7 +38,9 @@ public class Main extends AppCompatActivity {
     public void play(View view) {
         SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
         int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-        startActivity(Globals.createPlayIntent(this, currentLevel));
+        Intent intent = new Intent(this, Play.class);
+        intent.putExtra(Globals.LEVEL_NUM, currentLevel);
+        startActivity(intent);
     }
 
     public void levelSelect(View view) {
