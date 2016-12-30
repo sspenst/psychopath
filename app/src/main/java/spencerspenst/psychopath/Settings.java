@@ -4,12 +4,16 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class Settings extends AppCompatActivity {
     private View mContentView;
+    private Settings thisClass = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +21,25 @@ public class Settings extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
         mContentView = findViewById(R.id.fullscreen_content);
         setVisibility();
+
+        // Get stats from SharedPreferences
+        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+        int stepCount = settings.getInt(Globals.STEP_COUNT, 0);
+        int restarts = settings.getInt(Globals.RESTARTS, 0);
+
+        // Add the stats to the layout
+        LinearLayout statContainer = (LinearLayout) findViewById(R.id.stat_container);
+        TextView stepCountView = new TextView(this);
+        stepCountView.setText("Total steps taken: " + stepCount);
+        stepCountView.setTextColor(Color.WHITE);
+        stepCountView.setGravity(TextView.TEXT_ALIGNMENT_CENTER);
+        statContainer.addView(stepCountView);
+
+        TextView restartsView = new TextView(this);
+        restartsView.setText("Total levels restarted: " + restarts);
+        restartsView.setTextColor(Color.WHITE);
+        restartsView.setGravity(TextView.TEXT_ALIGNMENT_CENTER);
+        statContainer.addView(restartsView);
     }
 
     @Override
@@ -45,14 +68,18 @@ public class Settings extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setTitle("Reset Progress");
-        builder.setMessage("Are you sure you want to reset your progress?");
+        builder.setMessage("Are you sure you want to reset your progress?\n" +
+                "NOTE: This will reset all statistics as well.");
 
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
+                editor.putInt(Globals.STEP_COUNT, 0);
+                editor.putInt(Globals.RESTARTS, 0);
                 editor.apply();
+                startActivity(new Intent(thisClass, Settings.class));
             }
         });
 

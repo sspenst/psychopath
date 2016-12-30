@@ -313,6 +313,13 @@ public class Play extends AppCompatActivity {
             drawPlayer();
             incrementSteps();
             checkWin();
+
+            // Increment the number of steps
+            SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+            int stepCount = settings.getInt(Globals.STEP_COUNT, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putInt(Globals.STEP_COUNT, stepCount + 1);
+            editor.apply();
         }
     }
 
@@ -368,5 +375,12 @@ public class Play extends AppCompatActivity {
         blockAdapter = new BlockAdapter(this, columns, rows, type);
         gridView.setAdapter(blockAdapter);
         drawPlayer();
+
+        // Increment the number of restarts
+        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+        int restarts = settings.getInt(Globals.RESTARTS, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(Globals.RESTARTS, restarts + 1);
+        editor.apply();
     }
 }
