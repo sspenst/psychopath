@@ -9,5 +9,6 @@
     <string name="settings_button">Settings</string>
     <string name="about_button">About</string>
     <string name="restart_button">Restart</string>
+    <string name="undo_button">Undo</string>
 
 </resources>

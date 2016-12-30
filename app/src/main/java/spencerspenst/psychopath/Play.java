@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class Play extends AppCompatActivity {
     private Play thisClass = this;
@@ -42,6 +43,23 @@ public class Play extends AppCompatActivity {
     private int posY;
     private String[][] type;
     private List<int[]> finishPositions;
+    private Stack<Undo> undoMoves = new Stack<Undo>();
+
+    /**
+     * Represents the reverse of a move.
+     * pull is true if a pink block was pushed with the original move.
+     */
+    private class Undo {
+        public int dx;
+        public int dy;
+        public boolean pull;
+
+        public Undo(int dx, int dy, boolean pull) {
+            this.dx = dx;
+            this.dy = dy;
+            this.pull = pull;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -216,13 +234,24 @@ public class Play extends AppCompatActivity {
         }
     }
 
-    /**
-     * Update the player location
-     */
-    private void drawPlayer() {
+    // Update the position of the player on the screen
+    private void updatePlayer() {
         ImageView player = (ImageView) findViewById(R.id.player);
         player.setX((blockSize)*posX);
         player.setY((blockSize)*posY);
+    }
+
+    // Passing true increments steps, false decrements
+    private void updateSteps(boolean increment) {
+        if (increment) steps++;
+        else steps--;
+
+        String levelStepsText = steps + "/" + totalSteps;
+        TextView levelSteps = (TextView) findViewById(R.id.level_steps);
+        levelSteps.setText(levelStepsText);
+
+        if (steps > totalSteps) levelSteps.setTextColor(Color.RED);
+        else levelSteps.setTextColor(Color.WHITE);
     }
 
     private void checkWin() {
@@ -269,6 +298,11 @@ public class Play extends AppCompatActivity {
         }
     }
 
+    // Return true if a point is within the bounds of the board.
+    private boolean validPoint(int x, int y) {
+        return x >= 0 && x < columns && y >= 0 && y < rows;
+    }
+
     /**
      * Move the player.
      * @param x the change in x position
@@ -282,6 +316,7 @@ public class Play extends AppCompatActivity {
 
         switch(type[newPosY][newPosX]) {
             case "0":
+                undoMoves.push(new Undo(-x, -y, false));
                 moveMade = true;
                 posX = newPosX;
                 posY = newPosY;
@@ -294,6 +329,7 @@ public class Play extends AppCompatActivity {
                 int pushPosX = newPosX + x;
                 if (!validPoint(pushPosX, pushPosY)) return;
                 if (type[pushPosY][pushPosX].equals("0")) {
+                    undoMoves.push(new Undo(-x, -y, true));
                     moveMade = true;
                     posX = newPosX;
                     posY = newPosY;
@@ -310,32 +346,20 @@ public class Play extends AppCompatActivity {
         }
 
         if (moveMade) {
-            drawPlayer();
-            incrementSteps();
+            updatePlayer();
+            updateSteps(true);
             checkWin();
-
-            // Increment the number of steps
-            SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
-            int stepCount = settings.getInt(Globals.STEP_COUNT, 0);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putInt(Globals.STEP_COUNT, stepCount + 1);
-            editor.apply();
+            incSteps();
         }
     }
 
-    /**
-     * Return true if a point is within the bounds of the board.
-     */
-    private boolean validPoint(int x, int y) {
-        return x >= 0 && x < columns && y >= 0 && y < rows;
-    }
-
-    private void incrementSteps() {
-        steps++;
-        String levelStepsText = steps + "/" + totalSteps;
-        TextView levelSteps = (TextView) findViewById(R.id.level_steps);
-        levelSteps.setText(levelStepsText);
-        if (steps > totalSteps) levelSteps.setTextColor(Color.RED);
+    // Increment the total step count
+    private void incSteps() {
+        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+        int stepCount = settings.getInt(Globals.STEP_COUNT, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(Globals.STEP_COUNT, stepCount + 1);
+        editor.apply();
     }
 
     public void left(View view) {
@@ -367,14 +391,16 @@ public class Play extends AppCompatActivity {
     }
 
     public void levelSelect(View view) {
+        // TODO: is there any cleanup that needs to be done when you leave Play.class?
         startActivity(new Intent(this, LevelSelect.class));
     }
 
     public void restart(View view) {
+        undoMoves = new Stack<Undo>();
         getLevelData();
         blockAdapter = new BlockAdapter(this, columns, rows, type);
         gridView.setAdapter(blockAdapter);
-        drawPlayer();
+        updatePlayer();
 
         // Increment the number of restarts
         SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
@@ -382,5 +408,34 @@ public class Play extends AppCompatActivity {
         SharedPreferences.Editor editor = settings.edit();
         editor.putInt(Globals.RESTARTS, restarts + 1);
         editor.apply();
+    }
+
+    public void undo(View view) {
+        if (!undoMoves.isEmpty()) {
+            Undo undoMove = undoMoves.pop();
+
+            // Find the current position of the movable block
+            int movableX = posX - undoMove.dx;
+            int movableY = posY - undoMove.dy;
+
+            // Put the movable block at the current position
+            if (undoMove.pull) {
+                GridView levelGrid = (GridView) findViewById(R.id.level_grid);
+                ImageView normalBlock = (ImageView) levelGrid.getChildAt(movableY * columns + movableX);
+                normalBlock.setImageResource(R.drawable.ground);
+                type[movableY][movableX] = "0";
+                ImageView movableBlock = (ImageView) levelGrid.getChildAt(posY * columns + posX);
+                movableBlock.setImageResource(R.drawable.movable);
+                type[posY][posX] = "2";
+            }
+
+            // Undo the move
+            posX += undoMove.dx;
+            posY += undoMove.dy;
+            updatePlayer();
+            updateSteps(false);
+            checkWin();
+            incSteps();
+        }
     }
 }
