@@ -244,7 +244,7 @@ public class Play extends AppCompatActivity {
                     TextView levelName = (TextView) findViewById(R.id.level_name);
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setMessage("Congratulations, you beat " + levelName.getText() + "!");
+                    builder.setMessage("Congratulations, you beat \"" + levelName.getText() + "\"!");
                     builder.setPositiveButton("Next Level", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Intent intent = new Intent(thisClass, Play.class);
@@ -280,7 +280,7 @@ public class Play extends AppCompatActivity {
     private void move(int x, int y) {
         int newPosX = posX + x;
         int newPosY = posY + y;
-        if (newPosX < 0 || newPosX == columns || newPosY < 0 || newPosY == rows) return;
+        if (!validPoint(newPosX, newPosY)) return;
         boolean moveMade = false;
         switch(type[newPosY][newPosX]) {
             case "0":
@@ -294,6 +294,7 @@ public class Play extends AppCompatActivity {
                 // Check if there is space for the block to move
                 int pushPosY = newPosY + y;
                 int pushPosX = newPosX + x;
+                if (!validPoint(pushPosX, pushPosY)) return;
                 if (type[pushPosY][pushPosX].equals("0")) {
                     moveMade = true;
                     posX = newPosX;
@@ -316,6 +317,13 @@ public class Play extends AppCompatActivity {
             drawPlayer();
             checkWin();
         }
+    }
+
+    /**
+     * Return true if a point is within the bounds of the board.
+     */
+    private boolean validPoint(int x, int y) {
+        return x >= 0 && x < columns && y >= 0 && y < rows;
     }
 
     private void incrementSteps() {
