@@ -52,7 +52,7 @@ public class Settings extends AppCompatActivity {
                 SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-                editor.commit();
+                editor.apply();
             }
         });
 
@@ -67,9 +67,28 @@ public class Settings extends AppCompatActivity {
     }
 
     public void unlock(View view) {
-        SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt(Globals.CURRENT_LEVEL, Globals.TOTAL_LEVELS);
-        editor.commit();
+        // TODO: remove this option if there is going to be a game center leaderboards thing
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Unlock All Levels");
+        builder.setMessage("Are you sure you want to unlock all levels?");
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putInt(Globals.CURRENT_LEVEL, Globals.TOTAL_LEVELS);
+                editor.apply();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

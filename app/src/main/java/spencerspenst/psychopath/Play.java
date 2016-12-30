@@ -45,8 +45,6 @@ public class Play extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // TODO: figure out how to do animations without freezing the phone?
-        //overridePendingTransition(R.anim.slide_in, 0);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
         mContentView = findViewById(R.id.fullscreen_content);
@@ -61,16 +59,13 @@ public class Play extends AppCompatActivity {
         int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
 
         if (levelNumber == 1 && currentLevel == 1) {
-            // TODO: what does the winning block look like?
-            directionAlert("The objective of this game is to get to the winning " +
+            directionAlert("The objective of this game is to get to the finish " +
                     "block in the shortest amount of steps.\n\nThe total number of steps you " +
                     "have is listed on the bottom of the screen. If you go over " +
                     "this number of steps you will lose and the level will restart.");
         } else if (levelNumber == 2 && currentLevel == 2) {
-            // TODO: are the blocks always black?
             directionAlert("You cannot move through black blocks, only around them.");
         } else if (levelNumber == 10 && currentLevel == 10) {
-            // TODO: are they always pink?
             directionAlert("Pink blocks can be moved in any direction. You cannot stack " +
                     "them, nor can you push two blocks at once.");
         }
@@ -106,12 +101,8 @@ public class Play extends AppCompatActivity {
                     blockAdapter = new BlockAdapter(thisClass, columns, rows, type);
                     gridView.setAdapter(blockAdapter);
 
-                    // Update the player location and size
-                    ImageView player = (ImageView) findViewById(R.id.player);
-                    player.setX((blockSize)*posX);
-                    player.setY((blockSize)*posY);
-                    player.getLayoutParams().width = blockSize;
-                    player.getLayoutParams().height = blockSize;
+                    // LayoutParams for a block
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(blockSize, blockSize);
 
                     // Create and add all finishes to the board
                     for (int[] finishPosition : finishPositions) {
@@ -119,10 +110,16 @@ public class Play extends AppCompatActivity {
                         finish.setImageResource(R.drawable.finish);
                         finish.setX(blockSize*finishPosition[0]);
                         finish.setY(blockSize*finishPosition[1]);
-                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(blockSize, blockSize);
-                        RelativeLayout rl = (RelativeLayout) findViewById(R.id.board);
-                        rl.addView(finish, lp);
+                        board.addView(finish, lp);
                     }
+
+                    // Create the player so that it appears above the finish
+                    ImageView player = new ImageView(thisClass);
+                    player.setId(R.id.player);
+                    player.setImageResource(R.drawable.ball);
+                    player.setX(blockSize*posX);
+                    player.setY(blockSize*posY);
+                    board.addView(player, lp);
                 }
             });
         }
@@ -184,7 +181,7 @@ public class Play extends AppCompatActivity {
             String levelStepsText = steps + "/" + totalSteps;
             TextView levelSteps = (TextView) findViewById(R.id.level_steps);
             levelSteps.setText(levelStepsText);
-            levelSteps.setTextColor(Color.BLACK);
+            levelSteps.setTextColor(Color.WHITE);
 
             columns = Integer.valueOf(reader.readLine());
             rows = Integer.valueOf(reader.readLine());
@@ -238,7 +235,7 @@ public class Play extends AppCompatActivity {
                     if (levelNumber == currentLevel && currentLevel < Globals.TOTAL_LEVELS) {
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putInt(Globals.CURRENT_LEVEL, currentLevel + 1);
-                        editor.commit();
+                        editor.apply();
                     }
 
                     TextView levelName = (TextView) findViewById(R.id.level_name);
@@ -267,7 +264,7 @@ public class Play extends AppCompatActivity {
                         }
                     });
                     builder.create().show();
-                }
+                } // TODO: should something happen if the user has steps < totalSteps?
             }
         }
     }
@@ -282,6 +279,7 @@ public class Play extends AppCompatActivity {
         int newPosY = posY + y;
         if (!validPoint(newPosX, newPosY)) return;
         boolean moveMade = false;
+
         switch(type[newPosY][newPosX]) {
             case "0":
                 moveMade = true;
@@ -303,18 +301,17 @@ public class Play extends AppCompatActivity {
                     type[pushPosY][pushPosX] = "2";
                     // Update the two blocks that changed
                     GridView levelGrid = (GridView) findViewById(R.id.level_grid);
-                    TextView normalBlock = (TextView) levelGrid.getChildAt(newPosY * columns + newPosX);
-                    // TODO: global colors
-                    normalBlock.setBackgroundColor(Color.rgb(100, 119, 51));
-                    TextView movableBlock = (TextView) levelGrid.getChildAt(pushPosY * columns + pushPosX);
-                    movableBlock.setBackgroundColor(Color.rgb(215, 155, 155));
+                    ImageView normalBlock = (ImageView) levelGrid.getChildAt(newPosY * columns + newPosX);
+                    normalBlock.setImageResource(R.drawable.ground);
+                    ImageView movableBlock = (ImageView) levelGrid.getChildAt(pushPosY * columns + pushPosX);
+                    movableBlock.setImageResource(R.drawable.movable);
                 }
                 break;
         }
 
         if (moveMade) {
-            incrementSteps();
             drawPlayer();
+            incrementSteps();
             checkWin();
         }
     }
@@ -331,7 +328,6 @@ public class Play extends AppCompatActivity {
         String levelStepsText = steps + "/" + totalSteps;
         TextView levelSteps = (TextView) findViewById(R.id.level_steps);
         levelSteps.setText(levelStepsText);
-        // TODO: change back to black at some point (ADD UNDO BUTTON)
         if (steps > totalSteps) levelSteps.setTextColor(Color.RED);
     }
 

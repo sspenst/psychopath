@@ -48,8 +48,8 @@ class LevelSelectAdapter extends BaseAdapter {
             // Set text color based on levels beaten
             SharedPreferences settings = mContext.getSharedPreferences(Globals.PREFS_NAME, 0);
             int currentLevel = settings.getInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-            if (position < currentLevel) textView.setTextColor(Color.BLACK);
-            else textView.setTextColor(Color.argb(30, 0, 0, 0));
+            if (position < currentLevel) textView.setTextColor(Color.WHITE);
+            else textView.setTextColor(Color.argb(30, 255, 255, 255));
         } else {
             textView = (TextView) convertView;
         }

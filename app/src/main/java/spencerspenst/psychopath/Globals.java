@@ -1,7 +1,6 @@
 package spencerspenst.psychopath;
 
 class Globals {
-    // TODO: does this one have to be global?
     // Retrieving level information
     final static String LEVEL_NUM = "spencerspenst.psychopath.LEVEL_NUM";
 
