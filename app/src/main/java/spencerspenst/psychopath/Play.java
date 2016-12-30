@@ -43,6 +43,7 @@ public class Play extends AppCompatActivity {
     private int posY;
     private String[][] type;
     private List<int[]> finishPositions;
+    private List<ImageView> finishViews;
     private Stack<Undo> undoMoves = new Stack<Undo>();
 
     /**
@@ -123,12 +124,14 @@ public class Play extends AppCompatActivity {
                     RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(blockSize, blockSize);
 
                     // Create and add all finishes to the board
+                    finishViews = new ArrayList<ImageView>();
                     for (int[] finishPosition : finishPositions) {
                         ImageView finish = new ImageView(thisClass);
                         finish.setImageResource(R.drawable.finish);
                         finish.setX(blockSize*finishPosition[0]);
                         finish.setY(blockSize*finishPosition[1]);
                         board.addView(finish, lp);
+                        finishViews.add(finish);
                     }
 
                     // Create the player so that it appears above the finish
@@ -141,6 +144,19 @@ public class Play extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void directionAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("DIRECTIONS:");
+        builder.setMessage(message);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // Acknowledge instructions
+            }
+        });
+        builder.setCancelable(false);
+        builder.create().show();
     }
 
     @Override
@@ -283,6 +299,7 @@ public class Play extends AppCompatActivity {
                             startActivity(new Intent(thisClass, LevelSelect.class));
                         }
                     });
+                    builder.setCancelable(false);
                     builder.create().show();
                 } else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -292,6 +309,12 @@ public class Play extends AppCompatActivity {
                             restart(null);
                         }
                     });
+                    builder.setNegativeButton("Continue", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            // Keep playing the level
+                        }
+                    });
+                    builder.setCancelable(false);
                     builder.create().show();
                 } // TODO: should something happen if the user has steps < totalSteps?
             }
@@ -341,6 +364,15 @@ public class Play extends AppCompatActivity {
                     normalBlock.setImageResource(R.drawable.ground);
                     ImageView movableBlock = (ImageView) levelGrid.getChildAt(pushPosY * columns + pushPosX);
                     movableBlock.setImageResource(R.drawable.movable);
+
+                    // Change visibility of finish blocks if movable blocks are covering them
+                    for (int i = 0; i < finishPositions.size(); i++) {
+                        if (finishPositions.get(i)[0] == newPosX && finishPositions.get(i)[1] == newPosY) {
+                            finishViews.get(i).setVisibility(View.VISIBLE);
+                        } else if (finishPositions.get(i)[0] == pushPosX && finishPositions.get(i)[1] == pushPosY) {
+                            finishViews.get(i).setVisibility(View.INVISIBLE);
+                        }
+                    }
                 }
                 break;
         }
@@ -378,18 +410,6 @@ public class Play extends AppCompatActivity {
         move(1, 0);
     }
 
-    private void directionAlert(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("DIRECTIONS:");
-        builder.setMessage(message);
-        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                // Acknowledge instructions
-            }
-        });
-        builder.create().show();
-    }
-
     public void levelSelect(View view) {
         // TODO: is there any cleanup that needs to be done when you leave Play.class?
         startActivity(new Intent(this, LevelSelect.class));
@@ -401,6 +421,10 @@ public class Play extends AppCompatActivity {
         blockAdapter = new BlockAdapter(this, columns, rows, type);
         gridView.setAdapter(blockAdapter);
         updatePlayer();
+
+        for (ImageView finishView : finishViews) {
+            finishView.setVisibility(View.VISIBLE);
+        }
 
         // Increment the number of restarts
         SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
@@ -427,6 +451,15 @@ public class Play extends AppCompatActivity {
                 ImageView movableBlock = (ImageView) levelGrid.getChildAt(posY * columns + posX);
                 movableBlock.setImageResource(R.drawable.movable);
                 type[posY][posX] = "2";
+
+                // Change visibility of finish blocks if movable blocks are covering them
+                for (int i = 0; i < finishPositions.size(); i++) {
+                    if (finishPositions.get(i)[0] == movableX && finishPositions.get(i)[1] == movableY) {
+                        finishViews.get(i).setVisibility(View.VISIBLE);
+                    } else if (finishPositions.get(i)[0] == posX && finishPositions.get(i)[1] == posY) {
+                        finishViews.get(i).setVisibility(View.INVISIBLE);
+                    }
+                }
             }
 
             // Undo the move

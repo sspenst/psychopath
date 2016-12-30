@@ -66,11 +66,9 @@ public class Settings extends AppCompatActivity {
 
     public void resetProgress(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
         builder.setTitle("Reset Progress");
         builder.setMessage("Are you sure you want to reset your progress?\n" +
                 "NOTE: This will reset all statistics as well.");
-
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
@@ -82,13 +80,12 @@ public class Settings extends AppCompatActivity {
                 startActivity(new Intent(thisClass, Settings.class));
             }
         });
-
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User cancelled the dialog
             }
         });
-
+        builder.setCancelable(false);
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -96,10 +93,8 @@ public class Settings extends AppCompatActivity {
     public void unlock(View view) {
         // TODO: remove this option if there is going to be a game center leaderboards thing
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
         builder.setTitle("Unlock All Levels");
         builder.setMessage("Are you sure you want to unlock all levels?");
-
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
@@ -108,13 +103,12 @@ public class Settings extends AppCompatActivity {
                 editor.apply();
             }
         });
-
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User cancelled the dialog
             }
         });
-
+        builder.setCancelable(false);
         AlertDialog dialog = builder.create();
         dialog.show();
     }
