@@ -25,6 +25,10 @@ public class Main extends AppCompatActivity {
         if (hasFocus) setVisibility();
     }
 
+    // TODO:
+    // http://stackoverflow.com/questions/23047637/android-immersive-mode-and-backwards-compatability
+    // so that immersive can be simulated on APIs lower than 19
+    // TODO: make this function global because lots of other files do the same thing
     private void setVisibility() {
         mContentView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE

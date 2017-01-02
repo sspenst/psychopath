@@ -44,18 +44,18 @@ public class Play extends AppCompatActivity {
     private String[][] type;
     private List<int[]> finishPositions;
     private List<ImageView> finishViews;
-    private Stack<Undo> undoMoves = new Stack<Undo>();
+    private Stack<Undo> undoMoves = new Stack<>();
 
     /**
      * Represents the reverse of a move.
      * pull is true if a pink block was pushed with the original move.
      */
     private class Undo {
-        public int dx;
-        public int dy;
-        public boolean pull;
+        int dx;
+        int dy;
+        boolean pull;
 
-        public Undo(int dx, int dy, boolean pull) {
+        Undo(int dx, int dy, boolean pull) {
             this.dx = dx;
             this.dy = dy;
             this.pull = pull;
@@ -124,7 +124,7 @@ public class Play extends AppCompatActivity {
                     RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(blockSize, blockSize);
 
                     // Create and add all finishes to the board
-                    finishViews = new ArrayList<ImageView>();
+                    finishViews = new ArrayList<>();
                     for (int[] finishPosition : finishPositions) {
                         ImageView finish = new ImageView(thisClass);
                         finish.setImageResource(R.drawable.finish);
@@ -220,7 +220,7 @@ public class Play extends AppCompatActivity {
             columns = Integer.valueOf(reader.readLine());
             rows = Integer.valueOf(reader.readLine());
             type = new String[rows][columns];
-            finishPositions = new ArrayList<int[]>();
+            finishPositions = new ArrayList<>();
             for (int i = 0; i < rows; i++) {
                 //String[] text = reader.readLine().split(" ");
                 String line = reader.readLine();
@@ -243,6 +243,7 @@ public class Play extends AppCompatActivity {
                     }
                 }
             }
+
             reader.close();
             ins.close();
         } catch (IOException e){
@@ -270,6 +271,7 @@ public class Play extends AppCompatActivity {
         else levelSteps.setTextColor(Color.WHITE);
     }
 
+    // Display an Alert if the player is on one of the finish blocks
     private void checkWin() {
         for (int[] finishPosition : finishPositions) {
             if (finishPosition[0] == posX && finishPosition[1] == posY) {
@@ -328,18 +330,18 @@ public class Play extends AppCompatActivity {
 
     /**
      * Move the player.
-     * @param x the change in x position
-     * @param y the change in y position
+     * @param dx the change in x position
+     * @param dy the change in y position
      */
-    private void move(int x, int y) {
-        int newPosX = posX + x;
-        int newPosY = posY + y;
+    private void move(int dx, int dy) {
+        int newPosX = posX + dx;
+        int newPosY = posY + dy;
         if (!validPoint(newPosX, newPosY)) return;
         boolean moveMade = false;
 
         switch(type[newPosY][newPosX]) {
             case "0":
-                undoMoves.push(new Undo(-x, -y, false));
+                undoMoves.push(new Undo(-dx, -dy, false));
                 moveMade = true;
                 posX = newPosX;
                 posY = newPosY;
@@ -348,11 +350,11 @@ public class Play extends AppCompatActivity {
                 break;
             case "2":
                 // Check if there is space for the block to move
-                int pushPosY = newPosY + y;
-                int pushPosX = newPosX + x;
+                int pushPosX = newPosX + dx;
+                int pushPosY = newPosY + dy;
                 if (!validPoint(pushPosX, pushPosY)) return;
                 if (type[pushPosY][pushPosX].equals("0")) {
-                    undoMoves.push(new Undo(-x, -y, true));
+                    undoMoves.push(new Undo(-dx, -dy, true));
                     moveMade = true;
                     posX = newPosX;
                     posY = newPosY;
@@ -416,7 +418,7 @@ public class Play extends AppCompatActivity {
     }
 
     public void restart(View view) {
-        undoMoves = new Stack<Undo>();
+        undoMoves.clear();
         getLevelData();
         blockAdapter = new BlockAdapter(this, columns, rows, type);
         gridView.setAdapter(blockAdapter);

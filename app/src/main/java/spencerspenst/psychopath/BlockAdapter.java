@@ -20,8 +20,7 @@ class BlockAdapter extends BaseAdapter {
         this.columns = columns;
         this.rows = rows;
         this.blocks = columns * rows;
-        // TODO: probably should do some defensive copying here
-        this.type = type;
+        this.type = type.clone();
     }
 
     public int getCount() {

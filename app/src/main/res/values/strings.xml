@@ -5,7 +5,7 @@
     <string name="home_button">Home</string>
     <string name="play_button">Play</string>
     <string name="level_select_button">Level Select</string>
-    <string name="game_center_button">Game Center</string>
+    <string name="leaderboards_button">Leaderboards</string>
     <string name="settings_button">Settings</string>
     <string name="about_button">About</string>
     <string name="restart_button">Restart</string>
