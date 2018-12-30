@@ -30,15 +30,15 @@ public class Settings extends AppCompatActivity {
         // Add the stats to the layout
         LinearLayout statContainer = (LinearLayout) findViewById(R.id.stat_container);
         TextView stepCountView = new TextView(this);
-        stepCountView.setText("Total steps taken: " + stepCount);
+        stepCountView.setText("- Total steps taken: " + stepCount);
         stepCountView.setTextColor(Color.WHITE);
-        stepCountView.setGravity(TextView.TEXT_ALIGNMENT_CENTER);
+        //stepCountView.setGravity(TextView.TEXT_ALIGNMENT_CENTER);
         statContainer.addView(stepCountView);
 
         TextView restartsView = new TextView(this);
-        restartsView.setText("Total levels restarted: " + restarts);
+        restartsView.setText("- Total levels restarted: " + restarts);
         restartsView.setTextColor(Color.WHITE);
-        restartsView.setGravity(TextView.TEXT_ALIGNMENT_CENTER);
+        //restartsView.setGravity(TextView.TEXT_ALIGNMENT_CENTER);
         statContainer.addView(restartsView);
     }
 
@@ -64,20 +64,41 @@ public class Settings extends AppCompatActivity {
         startActivity(new Intent(this, Main.class));
     }
 
+    // TODO: this isn't showing up in the app????
+    public void resetStats(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Reset Stats");
+        builder.setMessage("Are you sure you want to reset your stats?");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putInt(Globals.STEP_COUNT, 0);
+                editor.putInt(Globals.RESTARTS, 0);
+                editor.apply();
+                startActivity(new Intent(thisClass, Settings.class));
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+        builder.setCancelable(false);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     public void resetProgress(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Reset Progress");
-        builder.setMessage("Are you sure you want to reset your progress?\n" +
-                "NOTE: This will reset all statistics as well.");
+        builder.setMessage("Are you sure you want to reset your progress?");
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 SharedPreferences settings = getSharedPreferences(Globals.PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putInt(Globals.CURRENT_LEVEL, Globals.FIRST_LEVEL);
-                editor.putInt(Globals.STEP_COUNT, 0);
-                editor.putInt(Globals.RESTARTS, 0);
                 editor.apply();
-                startActivity(new Intent(thisClass, Settings.class));
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
